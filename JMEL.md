@@ -2,22 +2,22 @@
 
 ## Symbols
 
-`+` - addition
-`-` - subtraction
-`*` - multiplication
-`/` - division
-`%` - modulus (remainder)
-`!`  - logical NOT
-`&` - logical AND
-`|` - logical OR
-`=` - assignment operator
-`==` - equal to
-`!=` - not equal to
-`<`  - less than
-`>`  - greater than
-`<=` - less or equals
-`>=` - greater or equals
-`//` - comments
+- `+` addition
+- `-` subtraction
+- `*` multiplication
+- `/` division
+- `%` modulus (remainder)
+- `!`  logical NOT
+- `&` logical AND
+- `|` logical OR
+- `=` assignment operator
+- `==` equal to
+- `!=` not equal to
+- `<`  less than
+- `>`  greater than
+- `<=` less or equals
+- `>=` greater or equals
+- `//` comments
 
 ## Datatypes
 
@@ -26,70 +26,67 @@
 - The Null datatype represents a null value.
 - It has no properties or methods.
 
-e.g.
-
 ```jmel
 let x = null;
 ```
+
+---
 
 ### `boolean`
 
 - A Boolean datatype is used to represent logical values: true and false.
 - It has two properties, `true` and `false`. These are read-only constants with the values 1 and 0 respectively.
 
-e.g.
-
 ```jmel
 let t = true;
 let f = false;
 ```
+
+---
 
 ### `integer`
 
 - All numbers without any decimals.
 - Supports (`+`, `-`, `*`, `/`, `%`)
 
-e.g.
-
 ```jmel
 3
 99
 ```
+
+---
 
 ### `real`
 
 - All numbers with decimals.
 - Supports (`+`, `-`, `*`, `/`)
 
-e.g.
-
 ```jmel
 10.5
 27.84
 ```
 
+---
+
 ### `string`
 
 - A sequence of characters, enclosed in double `"` or single `'` quotes.
-- Supports (`+`, `*`)
 
-e.g.
+#### Declaring a string
 
 ```jmel
 "Hello World!"
 'This is a string.'
 ```
 
-- Strings can be concatinated using `+`
+#### String concatination and operators
 
 ```jmel
-"hi" * 3 = "hihihi"
 "Hello " + "world" = "Hello world"
+"hi" * 3 = "hihihi"
 ```
 
-- Strings can be indexed using `[]`.
-
-e.g.
+#### String indexing
 
 ```jmel
 let s = "Hello, World!";
@@ -97,12 +94,19 @@ s[0]                        // H
 s[5]                        // ,
 ```
 
+#### String methods
+
+##### string`.length()`
+
+- Returns the length of the string.
+
+---
+
 ### `array`
 
 - An array of values separated by commas and enclosed in square brackets `[...]`.
-- Supports (`+`)
 
-e.g.
+#### Declaring an array
 
 ```jmel
 [1, 2, 3]
@@ -110,9 +114,16 @@ e.g.
 [[1, 2], [3, 4]]
 ```
 
-- Arrays can be indexed using `[]`.
+#### Array operators
 
-e.g.
+```jmel
+let x = [3, 2, 5];
+x = x + 3;              // [3, 2, 5, 3]
+```
+
+#### Array indexing
+
+- Arrays can be indexed using `[]`.
 
 ```jmel
 let arr = [4, 2, 9, 1];
@@ -120,13 +131,21 @@ arr[0]                      // 4
 arr[2]                      // 9
 ```
 
+#### Array methods
+
+##### array`.length()`
+
+- Returns the number of elements in the array.
+
+---
+
 ### `tuple`
 
 - Tuples allow you to assign multiple variables at a time.
 - They are created with `(...)` syntax.
 - Elements cannot be accessed or modified individually once they're assigned.
 
-e.g.
+#### Declaring a tuple
 
 ```jmel
 let (x, y) = (4, true);
@@ -138,13 +157,15 @@ x                           // "hi"
 y                           // 1
 ```
 
+---
+
 ### `object`
 
 - A collection of key/value pairs separated by colons `:`, with each pair on its own line indented under the previous one.
 - The keys are followed by a colon and then the value.
 - Objects can be nested within other objects.
 
-e.g.
+#### Declaring an object
 
 ```jmel
 let obj = {
@@ -153,12 +174,18 @@ let obj = {
 };
 ```
 
+#### Object methods
+
+##### object`.length()`
+
+- Returns the number of properties in the object.
+
+---
+
 ## Hardcasting
 
 - Hardcasting is when you change the datatype of a value.
 - It is done using `as` or `to` around an expression.
-
-e.g.
 
 ```jmel
 let x = 5;
@@ -174,8 +201,6 @@ print(x to string);     // "5"
 - Variables are assigned using the assignment operator `=` which assigns the value on its right to the variable on its left.
 - When no value is specified the variable will default to `null`.
 
-e.g.
-
 ```jmel
 let x = 4;
 let y;
@@ -185,8 +210,6 @@ let y;
 
 - A immutable variable.
 - Declared with all caps.
-
-e.g.
 
 ```jmel
 let X = 3;
@@ -232,8 +255,6 @@ let HELLO = "world";
 - If an evaluated condition evaluates to `true` then it will execute the appropriate code block.
 - If statements can contain an else block that will execute when the condition evaluates to `false`.
 
-e.g.
-
 ```jmel
 if 3 == 2 {
     print("This won't be printed");
@@ -246,8 +267,6 @@ if 3 == 2 {
 
 - A case statement is similar to a series of if/else statements, but allows for multiple conditions to be tested easily.
 - When the `null` case is reached it will execute no matter what, so always put it last.
-
-e.g.
 
 ```jmel
 case "hello" of {
@@ -309,8 +328,6 @@ Functions in JMEL are defined using the following syntax:
 - The `<name>` is the function's identifier. It must start with a letter followed by any combination of letters, digits, or underscores.
 - The `[arguments]` section lists the names that will represent the data provided by the caller when calling the function.
 - The `[code]` section contains the code that the function will execute when it is called.
-
-e.g.
 
 ```jmel
 func add(a, b) { a + b }   // This function takes two arguments 'a' and 'b', adds them together and returns the result.
