@@ -61,7 +61,9 @@ impl Lexer {
 
     pub fn tokenize(&mut self) -> Vec<Token> {
         let mut tokens = Vec::new();
-        const KEYWORDS: [&str; 9] = ["let", "if", "else", "case", "of", "default", "as", "to", "func"];
+        const KEYWORDS: [&str; 9] = [
+            "let", "if", "else", "case", "of", "default", "as", "to", "func",
+        ];
 
         while !self.source_code.is_empty() {
             match self.source_code.chars().next().unwrap() {
@@ -155,12 +157,12 @@ impl Lexer {
                     }
                     tokens.push(Token::new(TT::String, word));
                 }
-                'a'..='z' | 'A'..='Z' => {
+                'a'..='z' | 'A'..='Z' | '_' => {
                     let mut word = self.eat().to_string();
 
                     while !self.source_code.is_empty() {
                         match self.source_code.chars().next().unwrap() {
-                            'a'..='z' | 'A'..='Z' | '0'..='9' => word.push(self.eat()),
+                            'a'..='z' | 'A'..='Z' | '0'..='9' | '_' => word.push(self.eat()),
                             _ => break,
                         };
                     }

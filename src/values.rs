@@ -1,4 +1,4 @@
-use crate::parser::ASTNode;
+use crate::{methods::*, parser::ASTNode};
 use std::{collections::HashMap, fmt};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -8,26 +8,30 @@ pub enum RuntimeValue {
     Integer(i64),
     Real(f64),
     Boolean(bool),
-    
+
     Tuple(Vec<RuntimeValue>),
 
     // datatypes with methods
     String(
         String,
-        HashMap<String, fn(Vec<RuntimeValue>) -> RuntimeValue>,
+        HashMap<String, fn(RuntimeValue, Vec<RuntimeValue>) -> RuntimeValue>,
     ),
     Array(
         Vec<RuntimeValue>,
-        HashMap<String, fn(Vec<RuntimeValue>) -> RuntimeValue>,
+        HashMap<String, fn(RuntimeValue, Vec<RuntimeValue>) -> RuntimeValue>,
     ),
     Object(
         HashMap<String, RuntimeValue>,
-        HashMap<String, fn(Vec<RuntimeValue>) -> RuntimeValue>,
+        HashMap<String, fn(RuntimeValue, Vec<RuntimeValue>) -> RuntimeValue>,
     ),
 
     // datatypes the programmer can't access
     BuiltInFunction(fn(Vec<RuntimeValue>) -> RuntimeValue, Vec<RuntimeValue>),
-    Method(fn(Vec<RuntimeValue>) -> RuntimeValue, Vec<RuntimeValue>),
+    Method(
+        fn(RuntimeValue, Vec<RuntimeValue>) -> RuntimeValue,
+        Box<RuntimeValue>,
+        Vec<RuntimeValue>,
+    ),
     Function(Vec<ASTNode>, ASTNode),
 }
 
@@ -44,7 +48,7 @@ impl fmt::Display for RuntimeValue {
             RuntimeValue::BuiltInFunction(c, _) => write!(f, "{:?}", c),
             RuntimeValue::Tuple(t) => write!(f, "{:?}", t),
             RuntimeValue::Function(p, b) => write!(f, "({:?}) {{{:?}}}", p, b),
-            RuntimeValue::Method(_, _) => todo!(),
+            RuntimeValue::Method(_, _, _) => todo!(),
         }
     }
 }
@@ -55,7 +59,11 @@ impl RuntimeValue {
         let mut methods = HashMap::new();
         methods.insert(
             "length".to_string(),
-            array_length as fn(Vec<RuntimeValue>) -> RuntimeValue,
+            array_length as fn(RuntimeValue, Vec<RuntimeValue>) -> RuntimeValue,
+        );
+        methods.insert(
+            "is_empty".to_string(),
+            array_is_empty as fn(RuntimeValue, Vec<RuntimeValue>) -> RuntimeValue,
         );
 
         RuntimeValue::Array(values, methods)
@@ -66,7 +74,11 @@ impl RuntimeValue {
         let mut methods = HashMap::new();
         methods.insert(
             "length".to_string(),
-            string_length as fn(Vec<RuntimeValue>) -> RuntimeValue,
+            string_length as fn(RuntimeValue, Vec<RuntimeValue>) -> RuntimeValue,
+        );
+        methods.insert(
+            "is_empty".to_string(),
+            string_is_empty as fn(RuntimeValue, Vec<RuntimeValue>) -> RuntimeValue,
         );
 
         RuntimeValue::String(values, methods)
@@ -77,36 +89,13 @@ impl RuntimeValue {
         let mut methods = HashMap::new();
         methods.insert(
             "length".to_string(),
-            object_length as fn(Vec<RuntimeValue>) -> RuntimeValue,
+            object_length as fn(RuntimeValue, Vec<RuntimeValue>) -> RuntimeValue,
+        );
+        methods.insert(
+            "is_empty".to_string(),
+            object_is_empty as fn(RuntimeValue, Vec<RuntimeValue>) -> RuntimeValue,
         );
 
         RuntimeValue::Object(values, methods)
-    }
-}
-
-fn array_length(array: Vec<RuntimeValue>) -> RuntimeValue {
-    // .length() method for array
-
-    match &array[0] {
-        RuntimeValue::Array(a, _) => RuntimeValue::Integer(a.len() as i64),
-        _ => RuntimeValue::Null,
-    }
-}
-
-fn string_length(string: Vec<RuntimeValue>) -> RuntimeValue {
-    // .length() method for string
-
-    match &string[0] {
-        RuntimeValue::String(s, _) => RuntimeValue::Integer(s.len() as i64),
-        _ => RuntimeValue::Null,
-    }
-}
-
-fn object_length(values: Vec<RuntimeValue>) -> RuntimeValue {
-    // .length() method for objects
-
-    match &values[0] {
-        RuntimeValue::Object(o, _) => RuntimeValue::Integer(o.len() as i64),
-        _ => RuntimeValue::Null,
     }
 }

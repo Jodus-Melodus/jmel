@@ -394,7 +394,7 @@ impl Interpreter {
 
         match caller {
             RuntimeValue::BuiltInFunction(call, _) => call(args),
-            RuntimeValue::Method(call, a) => call(a),
+            RuntimeValue::Method(call, object, _) => call(*object, args),
             RuntimeValue::Function(parameters, body) => {
                 let scope_interpreter = Interpreter::new(body);
                 let mut scope_environment = Environment::new(Some(environment.clone()));
@@ -443,7 +443,7 @@ impl Interpreter {
             // Properties and Methods
             (RuntimeValue::Object(o, methods), RuntimeValue::String(p, _)) => methods
                 .get(&p)
-                .map(|meth| RuntimeValue::Method(*meth, vec![obj.clone()]))
+                .map(|meth| RuntimeValue::Method(*meth, Box::new(obj.clone()), vec![]))
                 .or_else(|| o.get(&p).cloned())
                 .expect("Property not found on object"),
             (
@@ -451,7 +451,7 @@ impl Interpreter {
                 RuntimeValue::String(method, _),
             ) => methods
                 .get(&method)
-                .map(|meth| RuntimeValue::Method(*meth, vec![obj.clone()]))
+                .map(|meth| RuntimeValue::Method(*meth, Box::new(obj.clone()), vec![]))
                 .expect("Method not found"),
 
             // Indexing

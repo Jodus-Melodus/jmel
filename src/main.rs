@@ -16,6 +16,7 @@ mod interpreter;
 mod lexer;
 mod parser;
 mod values;
+mod methods;
 
 fn read_file(path: PathBuf) -> Vec<String> {
     let file = File::open(path).expect("Failed to open file");
