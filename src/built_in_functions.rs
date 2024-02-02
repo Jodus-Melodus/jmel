@@ -5,7 +5,7 @@ use crate::values::RuntimeValue;
 pub fn print(arguments: Vec<RuntimeValue>) -> RuntimeValue {
     for arg in arguments {
         print!("{:?}", arg);
-    };
+    }
     println!();
     RuntimeValue::Null
 }

@@ -441,25 +441,25 @@ impl Interpreter {
 
         match (&obj, prop) {
             // Properties and Methods
-            (RuntimeValue::Object(o, methods), RuntimeValue::String(p, _)) => {
-                methods.get(&p)
-                    .map(|meth| RuntimeValue::Method(*meth, vec![obj.clone()]))
-                    .or_else(|| o.get(&p).cloned())
-                    .expect("Property not found on object")
-            },
+            (RuntimeValue::Object(o, methods), RuntimeValue::String(p, _)) => methods
+                .get(&p)
+                .map(|meth| RuntimeValue::Method(*meth, vec![obj.clone()]))
+                .or_else(|| o.get(&p).cloned())
+                .expect("Property not found on object"),
             (
                 RuntimeValue::Array(_, methods) | RuntimeValue::String(_, methods),
                 RuntimeValue::String(method, _),
-            ) => methods.get(&method)
+            ) => methods
+                .get(&method)
                 .map(|meth| RuntimeValue::Method(*meth, vec![obj.clone()]))
                 .expect("Method not found"),
 
             // Indexing
-            (RuntimeValue::String(s, _), RuntimeValue::Integer(i)) => {
-                RuntimeValue::string(
-                    s.chars().nth(i as usize).map_or(String::from(" "), |c| c.to_string()),
-                )
-            },
+            (RuntimeValue::String(s, _), RuntimeValue::Integer(i)) => RuntimeValue::string(
+                s.chars()
+                    .nth(i as usize)
+                    .map_or(String::from(" "), |c| c.to_string()),
+            ),
             (RuntimeValue::Array(a, _), RuntimeValue::Integer(i)) => {
                 a.get(i as usize).cloned().unwrap_or(RuntimeValue::Null)
             }
