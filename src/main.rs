@@ -43,15 +43,9 @@ fn main() {
     let mut lexer = Lexer::new(source_code);
     let tokens = lexer.tokenize();
 
-    // println!("{:?}", tokens);
-
     let mut parser = Parser::new(tokens);
     let program = parser.generate_ast();
 
-    // println!("{:?}", program);
-
     let interpreter = Interpreter::new(program);
-    let result = interpreter.interpret(&mut environment);
-
-    // println!("{}", result);
+    let _result = interpreter.interpret(&mut environment);
 }

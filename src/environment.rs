@@ -20,6 +20,7 @@ impl Environment {
         constants.insert("false".to_string(), RuntimeValue::Boolean(false));
         constants.insert("print".to_string(), RuntimeValue::BuiltInFunction(built_in_functions::print, vec![]));
         constants.insert("input".to_string(), RuntimeValue::BuiltInFunction(built_in_functions::input, vec![]));
+        constants.insert("length".to_string(), RuntimeValue::BuiltInFunction(built_in_functions::length, vec![]));
 
         Environment {
             parent: Box::new(parent),

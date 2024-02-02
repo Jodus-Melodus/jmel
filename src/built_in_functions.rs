@@ -20,3 +20,12 @@ pub fn input(prompt: Vec<RuntimeValue>) -> RuntimeValue {
 
     RuntimeValue::String(input.trim_end().to_string())
 }
+
+pub fn length(object: Vec<RuntimeValue>) -> RuntimeValue {
+    match &object[0] {
+        RuntimeValue::Array(a) => RuntimeValue::Integer(a.len().try_into().unwrap()),
+        RuntimeValue::String(s) => RuntimeValue::Integer(s.len().try_into().unwrap()),
+        RuntimeValue::Object(o) => RuntimeValue::Integer(o.len().try_into().unwrap()),
+        _ => RuntimeValue::Integer(0)
+    }
+}
