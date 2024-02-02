@@ -51,11 +51,11 @@ impl Interpreter {
                 self.evaluate_conversion_expression(*left, *right, environment)
             }
 
-            ASTNode::StringLiteral(value) => RuntimeValue::String(value),
+            ASTNode::StringLiteral(value) => RuntimeValue::string(value),
             ASTNode::IntegerLiteral(value) => RuntimeValue::Integer(value),
             ASTNode::NullLiteral => RuntimeValue::Null,
             ASTNode::Identifier(variable_name) => environment.lookup(variable_name).clone(),
-            ASTNode::ArrayLiteral(values) => RuntimeValue::Array(
+            ASTNode::ArrayLiteral(values) => RuntimeValue::array(
                 values
                     .iter()
                     .map(|v| self.evaluate(v.clone(), environment))
@@ -90,14 +90,20 @@ impl Interpreter {
         }
     }
 
-    fn evaluate_function_declaration(&self, name: ASTNode, parameters: Vec<ASTNode>, body: ASTNode, environment: &mut Environment) -> RuntimeValue {
+    fn evaluate_function_declaration(
+        &self,
+        name: ASTNode,
+        parameters: Vec<ASTNode>,
+        body: ASTNode,
+        environment: &mut Environment,
+    ) -> RuntimeValue {
         match name {
             ASTNode::Identifier(function_name) => {
                 let function = RuntimeValue::Function(parameters, body);
                 environment.declare_variable(function_name, function.clone());
                 function
-            },
-            _ => panic!()
+            }
+            _ => panic!(),
         }
     }
 
@@ -115,30 +121,30 @@ impl Interpreter {
                     RuntimeValue::Integer(v) => RuntimeValue::Integer(v),
                     RuntimeValue::Real(v) => RuntimeValue::Integer(v as i64),
                     RuntimeValue::Boolean(v) => RuntimeValue::Integer(if v { 1 } else { 0 }),
-                    RuntimeValue::String(v) => RuntimeValue::Integer(v.parse::<i64>().unwrap()),
+                    RuntimeValue::String(v, _) => RuntimeValue::Integer(v.parse::<i64>().unwrap()),
                     _ => RuntimeValue::Null,
                 },
                 "real" => match l {
                     RuntimeValue::Integer(v) => RuntimeValue::Real(v as f64),
                     RuntimeValue::Real(v) => RuntimeValue::Real(v),
-                    RuntimeValue::String(v) => RuntimeValue::Real(v.parse::<f64>().unwrap()),
+                    RuntimeValue::String(v, _) => RuntimeValue::Real(v.parse::<f64>().unwrap()),
                     _ => RuntimeValue::Null,
                 },
                 "boolean" => match l {
                     RuntimeValue::Integer(v) => RuntimeValue::Boolean(v != 0),
                     RuntimeValue::Real(v) => RuntimeValue::Boolean(v != 0.0),
                     RuntimeValue::Boolean(v) => RuntimeValue::Boolean(v),
-                    RuntimeValue::String(v) => RuntimeValue::Boolean(!v.is_empty()),
-                    RuntimeValue::Array(v) => RuntimeValue::Boolean(!v.is_empty()),
-                    RuntimeValue::Object(v) => RuntimeValue::Boolean(!v.is_empty()),
+                    RuntimeValue::String(v, _) => RuntimeValue::Boolean(!v.is_empty()),
+                    RuntimeValue::Array(v, _) => RuntimeValue::Boolean(!v.is_empty()),
+                    RuntimeValue::Object(v, _) => RuntimeValue::Boolean(!v.is_empty()),
                     RuntimeValue::Tuple(v) => RuntimeValue::Boolean(!v.is_empty()),
                     _ => RuntimeValue::Null,
                 },
                 "string" => match l {
-                    RuntimeValue::Integer(v) => RuntimeValue::String(v.to_string()),
-                    RuntimeValue::Real(v) => RuntimeValue::String(v.to_string()),
-                    RuntimeValue::Boolean(v) => RuntimeValue::String(v.to_string()),
-                    RuntimeValue::String(v) => RuntimeValue::String(v),
+                    RuntimeValue::Integer(v) => RuntimeValue::string(v.to_string()),
+                    RuntimeValue::Real(v) => RuntimeValue::string(v.to_string()),
+                    RuntimeValue::Boolean(v) => RuntimeValue::string(v.to_string()),
+                    RuntimeValue::String(v, _) => RuntimeValue::string(v),
                     _ => RuntimeValue::Null,
                 },
                 _ => RuntimeValue::Null,
@@ -225,16 +231,16 @@ impl Interpreter {
             ("<", RuntimeValue::Real(lhs), RuntimeValue::Real(rhs)) => {
                 RuntimeValue::Boolean(lhs < rhs)
             }
-            ("<", RuntimeValue::String(lhs), RuntimeValue::Integer(rhs)) => {
+            ("<", RuntimeValue::String(lhs, _), RuntimeValue::Integer(rhs)) => {
                 RuntimeValue::Boolean(lhs.len() < rhs.try_into().unwrap())
             }
-            ("<", RuntimeValue::Array(lhs), RuntimeValue::Integer(rhs)) => {
+            ("<", RuntimeValue::Array(lhs, _), RuntimeValue::Integer(rhs)) => {
                 RuntimeValue::Boolean(lhs.len() < rhs.try_into().unwrap())
             }
-            ("<", RuntimeValue::String(lhs), RuntimeValue::String(rhs)) => {
+            ("<", RuntimeValue::String(lhs, _), RuntimeValue::String(rhs, _)) => {
                 RuntimeValue::Boolean(lhs.len() < rhs.len())
             }
-            ("<", RuntimeValue::Array(lhs), RuntimeValue::Array(rhs)) => {
+            ("<", RuntimeValue::Array(lhs, _), RuntimeValue::Array(rhs, _)) => {
                 RuntimeValue::Boolean(lhs.len() < rhs.len())
             }
 
@@ -250,16 +256,16 @@ impl Interpreter {
             ("<=", RuntimeValue::Real(lhs), RuntimeValue::Real(rhs)) => {
                 RuntimeValue::Boolean(lhs <= rhs)
             }
-            ("<=", RuntimeValue::String(lhs), RuntimeValue::Integer(rhs)) => {
+            ("<=", RuntimeValue::String(lhs, _), RuntimeValue::Integer(rhs)) => {
                 RuntimeValue::Boolean(lhs.len() <= rhs.try_into().unwrap())
             }
-            ("<=", RuntimeValue::Array(lhs), RuntimeValue::Integer(rhs)) => {
+            ("<=", RuntimeValue::Array(lhs, _), RuntimeValue::Integer(rhs)) => {
                 RuntimeValue::Boolean(lhs.len() <= rhs.try_into().unwrap())
             }
-            ("<=", RuntimeValue::String(lhs), RuntimeValue::String(rhs)) => {
+            ("<=", RuntimeValue::String(lhs, _), RuntimeValue::String(rhs, _)) => {
                 RuntimeValue::Boolean(lhs.len() <= rhs.len())
             }
-            ("<=", RuntimeValue::Array(lhs), RuntimeValue::Array(rhs)) => {
+            ("<=", RuntimeValue::Array(lhs, _), RuntimeValue::Array(rhs, _)) => {
                 RuntimeValue::Boolean(lhs.len() <= rhs.len())
             }
 
@@ -275,16 +281,16 @@ impl Interpreter {
             (">", RuntimeValue::Real(lhs), RuntimeValue::Real(rhs)) => {
                 RuntimeValue::Boolean(lhs > rhs)
             }
-            (">", RuntimeValue::String(lhs), RuntimeValue::Integer(rhs)) => {
+            (">", RuntimeValue::String(lhs, _), RuntimeValue::Integer(rhs)) => {
                 RuntimeValue::Boolean(lhs.len() > rhs.try_into().unwrap())
             }
-            (">", RuntimeValue::Array(lhs), RuntimeValue::Integer(rhs)) => {
+            (">", RuntimeValue::Array(lhs, _), RuntimeValue::Integer(rhs)) => {
                 RuntimeValue::Boolean(lhs.len() > rhs.try_into().unwrap())
             }
-            (">", RuntimeValue::String(lhs), RuntimeValue::String(rhs)) => {
+            (">", RuntimeValue::String(lhs, _), RuntimeValue::String(rhs, _)) => {
                 RuntimeValue::Boolean(lhs.len() > rhs.len())
             }
-            (">", RuntimeValue::Array(lhs), RuntimeValue::Array(rhs)) => {
+            (">", RuntimeValue::Array(lhs, _), RuntimeValue::Array(rhs, _)) => {
                 RuntimeValue::Boolean(lhs.len() > rhs.len())
             }
 
@@ -300,16 +306,16 @@ impl Interpreter {
             (">=", RuntimeValue::Real(lhs), RuntimeValue::Real(rhs)) => {
                 RuntimeValue::Boolean(lhs >= rhs)
             }
-            (">=", RuntimeValue::String(lhs), RuntimeValue::Integer(rhs)) => {
+            (">=", RuntimeValue::String(lhs, _), RuntimeValue::Integer(rhs)) => {
                 RuntimeValue::Boolean(lhs.len() >= rhs.try_into().unwrap())
             }
-            (">=", RuntimeValue::Array(lhs), RuntimeValue::Integer(rhs)) => {
+            (">=", RuntimeValue::Array(lhs, _), RuntimeValue::Integer(rhs)) => {
                 RuntimeValue::Boolean(lhs.len() >= rhs.try_into().unwrap())
             }
-            (">=", RuntimeValue::String(lhs), RuntimeValue::String(rhs)) => {
+            (">=", RuntimeValue::String(lhs, _), RuntimeValue::String(rhs, _)) => {
                 RuntimeValue::Boolean(lhs.len() >= rhs.len())
             }
-            (">=", RuntimeValue::Array(lhs), RuntimeValue::Array(rhs)) => {
+            (">=", RuntimeValue::Array(lhs, _), RuntimeValue::Array(rhs, _)) => {
                 RuntimeValue::Boolean(lhs.len() >= rhs.len())
             }
 
@@ -325,16 +331,16 @@ impl Interpreter {
             ("==", RuntimeValue::Real(lhs), RuntimeValue::Real(rhs)) => {
                 RuntimeValue::Boolean(lhs == rhs)
             }
-            ("==", RuntimeValue::String(lhs), RuntimeValue::Integer(rhs)) => {
+            ("==", RuntimeValue::String(lhs, _), RuntimeValue::Integer(rhs)) => {
                 RuntimeValue::Boolean(lhs.len() == rhs.try_into().unwrap())
             }
-            ("==", RuntimeValue::Array(lhs), RuntimeValue::Integer(rhs)) => {
+            ("==", RuntimeValue::Array(lhs, _), RuntimeValue::Integer(rhs)) => {
                 RuntimeValue::Boolean(lhs.len() == rhs.try_into().unwrap())
             }
-            ("==", RuntimeValue::String(lhs), RuntimeValue::String(rhs)) => {
+            ("==", RuntimeValue::String(lhs, _), RuntimeValue::String(rhs, _)) => {
                 RuntimeValue::Boolean(lhs == rhs)
             }
-            ("==", RuntimeValue::Array(lhs), RuntimeValue::Array(rhs)) => {
+            ("==", RuntimeValue::Array(lhs, _), RuntimeValue::Array(rhs, _)) => {
                 RuntimeValue::Boolean(lhs == rhs)
             }
             ("==", RuntimeValue::Boolean(lhs), RuntimeValue::Boolean(rhs)) => {
@@ -353,16 +359,16 @@ impl Interpreter {
             ("!=", RuntimeValue::Real(lhs), RuntimeValue::Real(rhs)) => {
                 RuntimeValue::Boolean(lhs != rhs)
             }
-            ("!=", RuntimeValue::String(lhs), RuntimeValue::Integer(rhs)) => {
+            ("!=", RuntimeValue::String(lhs, _), RuntimeValue::Integer(rhs)) => {
                 RuntimeValue::Boolean(lhs.len() != rhs.try_into().unwrap())
             }
-            ("!=", RuntimeValue::Array(lhs), RuntimeValue::Integer(rhs)) => {
+            ("!=", RuntimeValue::Array(lhs, _), RuntimeValue::Integer(rhs)) => {
                 RuntimeValue::Boolean(lhs.len() != rhs.try_into().unwrap())
             }
-            ("!=", RuntimeValue::String(lhs), RuntimeValue::String(rhs)) => {
+            ("!=", RuntimeValue::String(lhs, _), RuntimeValue::String(rhs, _)) => {
                 RuntimeValue::Boolean(lhs != rhs)
             }
-            ("!=", RuntimeValue::Array(lhs), RuntimeValue::Array(rhs)) => {
+            ("!=", RuntimeValue::Array(lhs, _), RuntimeValue::Array(rhs, _)) => {
                 RuntimeValue::Boolean(lhs != rhs)
             }
             ("!=", RuntimeValue::Boolean(lhs), RuntimeValue::Boolean(rhs)) => {
@@ -388,6 +394,7 @@ impl Interpreter {
 
         match caller {
             RuntimeValue::BuiltInFunction(call, _) => call(args),
+            RuntimeValue::Method(call, a) => call(a),
             RuntimeValue::Function(parameters, body) => {
                 let scope_interpreter = Interpreter::new(body);
                 let mut scope_environment = Environment::new(Some(environment.clone()));
@@ -395,7 +402,8 @@ impl Interpreter {
                 if parameters.len() == args.len() {
                     for (parameter, arg) in parameters.iter().zip(args.iter()) {
                         if let ASTNode::Identifier(variable_name) = parameter {
-                            scope_environment.declare_variable(variable_name.to_string(), arg.clone())
+                            scope_environment
+                                .declare_variable(variable_name.to_string(), arg.clone())
                         } else {
                             panic!()
                         }
@@ -403,9 +411,13 @@ impl Interpreter {
 
                     scope_interpreter.interpret(&mut scope_environment)
                 } else {
-                    panic!("Wrong number of arguments provided. Expected {} but got {}", parameters.len(), args.len());
+                    panic!(
+                        "Wrong number of arguments provided. Expected {} but got {}",
+                        parameters.len(),
+                        args.len()
+                    );
                 }
-            },
+            }
             _ => RuntimeValue::Null,
         }
     }
@@ -420,28 +432,36 @@ impl Interpreter {
         let obj = self.evaluate(object, environment);
         let prop = if dot {
             match property {
-                ASTNode::Identifier(s) => RuntimeValue::String(s),
+                ASTNode::Identifier(s) => RuntimeValue::string(s),
                 _ => RuntimeValue::Null,
             }
         } else {
             self.evaluate(property, environment)
         };
 
-        match (obj, prop) {
-            (RuntimeValue::Object(o), RuntimeValue::String(p)) => {
-                if o.contains_key(&p) {
-                    o.get(&p).unwrap().clone()
-                } else {
-                    RuntimeValue::Null
-                }
-            }
-            (RuntimeValue::String(s), RuntimeValue::Integer(i)) => RuntimeValue::String(
+        match (&obj, prop) {
+            // Properties and Methods
+            (RuntimeValue::Object(o, methods), RuntimeValue::String(p, _)) => methods
+                .get(&p)
+                .map(|meth| RuntimeValue::Method(*meth, vec![obj.clone()]))
+                .or_else(|| o.get(&p).cloned())
+                .expect("Property not found on object"),
+            (
+                RuntimeValue::Array(_, methods) | RuntimeValue::String(_, methods),
+                RuntimeValue::String(method, _),
+            ) => methods
+                .get(&method)
+                .map(|meth| RuntimeValue::Method(*meth, vec![obj.clone()]))
+                .expect("Method not found"),
+
+            // Indexing
+            (RuntimeValue::String(s, _), RuntimeValue::Integer(i)) => RuntimeValue::string(
                 s.chars()
                     .nth(i as usize)
                     .map_or(String::from(" "), |c| c.to_string()),
             ),
-            (RuntimeValue::Array(a), RuntimeValue::Integer(i)) => {
-                a.get(i as usize).map_or(RuntimeValue::Null, Clone::clone)
+            (RuntimeValue::Array(a, _), RuntimeValue::Integer(i)) => {
+                a.get(i as usize).cloned().unwrap_or(RuntimeValue::Null)
             }
             _ => RuntimeValue::Null,
         }
@@ -458,7 +478,7 @@ impl Interpreter {
             .zip(attribute_values.iter())
             .map(|(name, value)| (name.clone(), self.evaluate(value.clone(), environment)))
             .collect();
-        RuntimeValue::Object(attributes)
+        RuntimeValue::object(attributes)
     }
 
     fn evaluate_variable_declaration(
@@ -597,17 +617,17 @@ impl Interpreter {
                 RuntimeValue::Real(lhs / rhs as f64)
             }
 
-            ("+", RuntimeValue::String(lhs), RuntimeValue::String(rhs)) => {
-                RuntimeValue::String(lhs + &rhs)
+            ("+", RuntimeValue::String(lhs, _), RuntimeValue::String(rhs, _)) => {
+                RuntimeValue::string(lhs + &rhs)
             }
 
-            ("*", RuntimeValue::String(lhs), RuntimeValue::Integer(rhs)) => {
-                RuntimeValue::String(lhs.repeat(rhs as usize))
+            ("*", RuntimeValue::String(lhs, _), RuntimeValue::Integer(rhs)) => {
+                RuntimeValue::string(lhs.repeat(rhs as usize))
             }
 
-            ("+", RuntimeValue::Array(mut lhs), rhs) => {
+            ("+", RuntimeValue::Array(mut lhs, _), rhs) => {
                 lhs.push(rhs);
-                RuntimeValue::Array(lhs)
+                RuntimeValue::array(lhs)
             }
 
             _ => RuntimeValue::Integer(0),
