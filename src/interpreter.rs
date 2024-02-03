@@ -1,5 +1,4 @@
 use core::panic;
-use std::collections::HashMap;
 
 use crate::{environment::Environment, parser::ASTNode, values::RuntimeValue};
 
@@ -61,10 +60,10 @@ impl Interpreter {
                     .map(|v| self.evaluate(v.clone(), environment))
                     .collect(),
             ),
-            ASTNode::ObjectLiteral(attribute_names, attribute_values) => {
-                self.evaluate_object_literal(attribute_names, attribute_values, environment)
-            }
-            ASTNode::TupleLiteral(values) => self.evaluate_tuple_literal(values, environment),
+            // ASTNode::ObjectLiteral(attribute_names, attribute_values) => {
+            //     self.evaluate_object_literal(attribute_names, attribute_values, environment)
+            // }
+            // ASTNode::TupleLiteral(values) => self.evaluate_tuple_literal(values, environment),
             ASTNode::RealLiteral(value) => RuntimeValue::Real(value),
 
             ASTNode::VariableDeclaration(variable_name, variable_value) => {
@@ -151,20 +150,6 @@ impl Interpreter {
             },
             _ => RuntimeValue::Null,
         }
-    }
-
-    fn evaluate_tuple_literal(
-        &self,
-        values: Vec<ASTNode>,
-        environment: &mut Environment,
-    ) -> RuntimeValue {
-        let mut evaluated_values = Vec::new();
-
-        for value in values {
-            evaluated_values.push(self.evaluate(value, environment));
-        }
-
-        RuntimeValue::Tuple(evaluated_values)
     }
 
     fn evaluate_case_statement(
@@ -467,20 +452,6 @@ impl Interpreter {
         }
     }
 
-    fn evaluate_object_literal(
-        &self,
-        attribute_names: Vec<String>,
-        attribute_values: Vec<ASTNode>,
-        environment: &mut Environment,
-    ) -> RuntimeValue {
-        let attributes: HashMap<_, _> = attribute_names
-            .iter()
-            .zip(attribute_values.iter())
-            .map(|(name, value)| (name.clone(), self.evaluate(value.clone(), environment)))
-            .collect();
-        RuntimeValue::object(attributes)
-    }
-
     fn evaluate_variable_declaration(
         &self,
         variable: ASTNode,
@@ -494,16 +465,6 @@ impl Interpreter {
                 variable_name = n;
                 let value = self.evaluate(variable_value, environment);
                 environment.declare_variable(variable_name, value);
-                RuntimeValue::Null
-            }
-            (ASTNode::TupleLiteral(values), ASTNode::TupleLiteral(new_values)) => {
-                for (value, new_value) in values.iter().zip(new_values.iter()) {
-                    self.evaluate_variable_declaration(
-                        value.clone(),
-                        new_value.clone(),
-                        environment,
-                    );
-                }
                 RuntimeValue::Null
             }
             _ => panic!(),
@@ -520,16 +481,6 @@ impl Interpreter {
             (ASTNode::Identifier(name), _) => {
                 let value = self.evaluate(variable_value, environment);
                 environment.assign(name, value);
-                RuntimeValue::Null
-            }
-            (ASTNode::TupleLiteral(values), ASTNode::TupleLiteral(new_values)) => {
-                for (value, new_value) in values.iter().zip(new_values.iter()) {
-                    self.evaluate_assignment_expression(
-                        value.clone(),
-                        new_value.clone(),
-                        environment,
-                    );
-                }
                 RuntimeValue::Null
             }
             _ => panic!("Expected Identifier"),
