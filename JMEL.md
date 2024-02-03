@@ -147,7 +147,16 @@ arr[2]                      // 9
 #### Declaring a tuple
 
 ```jmel
-let x = tup(4, 3, true);
+let x = tup(4, 1, true);
+```
+
+#### Tuple Operators
+
+- Tuples support all arithmatic operators.
+
+```jmel
+let y = tup(7, 8);
+x + y                   // (11, 9)
 ```
 
 ---
