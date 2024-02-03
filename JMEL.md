@@ -27,7 +27,7 @@
 - It has no properties or methods.
 
 ```jmel
-let x = null;
+null
 ```
 
 ---
@@ -38,8 +38,8 @@ let x = null;
 - It has two properties, `true` and `false`. These are read-only constants with the values 1 and 0 respectively.
 
 ```jmel
-let t = true;
-let f = false;
+true
+false
 ```
 
 ---
@@ -217,6 +217,17 @@ let y;
 let X = 3;
 let HELLO = "world";
 ```
+
+#### Built-In Constants
+
+These are constants that jMel provides for convenience:
+
+- `null`: The null constant, represents nothingness.
+- `true`: Boolean true.
+- `false`: Boolean false.
+- `integer`: Integer 0.
+- `real`: Real 0.0.
+- `boolean`: Boolean false.
 
 ## Comparisons
 
