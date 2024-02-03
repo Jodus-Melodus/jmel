@@ -1,7 +1,5 @@
 use std::{
-    fs::File,
-    io::{self, BufRead, BufReader, Write},
-    path::PathBuf,
+    env, fs::File, io::{BufRead, BufReader}, path::PathBuf
 };
 
 use interpreter::Interpreter;
@@ -27,30 +25,20 @@ fn read_file(path: PathBuf) -> Vec<String> {
     content
 }
 
-fn read_line(prompt: &str) -> String {
-    let mut input = String::new();
-    print!("{}", prompt);
-    io::stdout().flush().expect("Failed to flush");
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read line");
-    input.trim_end().to_string()
-}
-
 fn main() {
-    let source_code = read_file(PathBuf::from(read_line("Enter path > "))).join("\n");
-    let mut environment = Environment::new(None);
+    let mut arguments: Vec<String> = env::args().collect();
+    arguments.remove(0);
 
-    let mut lexer = Lexer::new(source_code);
-    let tokens = lexer.tokenize();
+    if let Some(source_file) = arguments.get(0) {
+        let source_code = read_file(PathBuf::from(source_file)).join("\n");
 
-    let mut parser = Parser::new(tokens);
-    let program = parser.generate_ast();
+        let mut lexer = Lexer::new(source_code);
+        let tokens = lexer.tokenize();
 
-    // println!("{:?}", program);
+        let mut parser = Parser::new(tokens);
+        let program = parser.generate_ast();
 
-    let interpreter = Interpreter::new(program);
-    let _result = interpreter.interpret(&mut environment);
-
-    // println!("{}", _result);
+        let interpreter = Interpreter::new(program);
+        let _result = interpreter.interpret(&mut Environment::new(None));
+    }
 }
