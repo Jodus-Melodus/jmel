@@ -15,7 +15,6 @@ impl Environment {
         let mut constants = HashMap::new();
 
         // Global constants
-        constants.insert("null".to_string(), RuntimeValue::Null);
         constants.insert("true".to_string(), RuntimeValue::Boolean(true));
         constants.insert("false".to_string(), RuntimeValue::Boolean(false));
         constants.insert(
@@ -27,6 +26,14 @@ impl Environment {
             RuntimeValue::BuiltInFunction(built_in_functions::input, vec![]),
         );
         constants.insert("tup".to_string(), RuntimeValue::BuiltInFunction(built_in_functions::tup, vec![]));
+        
+        // Datatype defaults
+        constants.insert("null".to_string(), RuntimeValue::Null);
+        constants.insert("integer".to_string(), RuntimeValue::Integer(0));
+        constants.insert("real".to_string(), RuntimeValue::Real(0.0));
+        constants.insert("boolean".to_string(), RuntimeValue::Boolean(false));
+        constants.insert("tuple".to_string(), RuntimeValue::Tuple(vec![]));
+
 
         Environment {
             parent: Box::new(parent),

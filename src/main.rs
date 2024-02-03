@@ -47,8 +47,10 @@ fn main() {
     let mut parser = Parser::new(tokens);
     let program = parser.generate_ast();
 
+    // println!("{:?}", program);
+
     let interpreter = Interpreter::new(program);
     let _result = interpreter.interpret(&mut environment);
 
-    println!("{}", _result);
+    // println!("{}", _result);
 }

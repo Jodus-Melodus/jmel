@@ -28,6 +28,7 @@ pub enum TT {
     And,
     Or,
     Xor,
+    RightArrow,
 }
 
 #[derive(Clone, Debug)]
@@ -85,6 +86,17 @@ impl Lexer {
                         } else {
                             tokens.push(Token::new(TT::BinaryOperator, self.eat().to_string()))
                         };
+                    
+                    } else if self.source_code.chars().nth(0).unwrap() == '-' {
+                        if self.source_code.starts_with("->") {
+                            self.eat();
+                            self.eat();
+
+                            tokens.push(Token::new(TT::RightArrow, "->".to_string()))
+                        } else {
+                            tokens.push(Token::new(TT::BinaryOperator, self.eat().to_string()))
+                        };
+                    
                     } else {
                         tokens.push(Token::new(TT::BinaryOperator, self.eat().to_string()))
                     }

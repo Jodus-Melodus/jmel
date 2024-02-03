@@ -65,8 +65,8 @@ impl Interpreter {
             ASTNode::VariableDeclaration(variable_name, variable_value) => {
                 self.evaluate_variable_declaration(*variable_name, *variable_value, environment)
             }
-            ASTNode::FunctionDeclaration(name, parameters, body) => {
-                self.evaluate_function_declaration(*name, parameters, *body, environment)
+            ASTNode::FunctionDeclaration(name, parameters, parameter_types, return_type, body) => {
+                self.evaluate_function_declaration(*name, parameters, parameter_types, *return_type, *body, environment)
             }
             ASTNode::IfStatement(condition, body, else_body) => {
                 self.evaluate_if_statement(*condition, *body, *else_body, environment)
@@ -89,12 +89,21 @@ impl Interpreter {
         &self,
         name: ASTNode,
         parameters: Vec<ASTNode>,
+        parameter_types: Vec<ASTNode>,
+        return_type: ASTNode,
         body: ASTNode,
         environment: &mut Environment,
     ) -> RuntimeValue {
+        let mut para_types = Vec::new();
+        let return_type = self.evaluate(return_type, environment);
+
+        for parameter_type in parameter_types {
+            para_types.push(self.evaluate(parameter_type, environment));
+        }
+
         match name {
             ASTNode::Identifier(function_name) => {
-                let function = RuntimeValue::Function(parameters, body);
+                let function = RuntimeValue::Function(parameters, para_types, Box::new(return_type), body);
                 environment.declare_variable(function_name, function.clone());
                 function
             }
@@ -376,21 +385,32 @@ impl Interpreter {
         match caller {
             RuntimeValue::BuiltInFunction(call, _) => call(args),
             RuntimeValue::Method(call, object, _) => call(*object, args),
-            RuntimeValue::Function(parameters, body) => {
+            RuntimeValue::Function(parameters, parameter_types, return_type, body) => {
                 let scope_interpreter = Interpreter::new(body);
                 let mut scope_environment = Environment::new(Some(environment.clone()));
 
-                if parameters.len() == args.len() {
-                    for (parameter, arg) in parameters.iter().zip(args.iter()) {
+                if parameters.len() == args.len() && args.len() == parameter_types.len() {
+                    for ((parameter, arg), expected_type) in parameters.iter().zip(args).zip(parameter_types) {
                         if let ASTNode::Identifier(variable_name) = parameter {
-                            scope_environment
-                                .declare_variable(variable_name.to_string(), arg.clone())
+                            
+                            match (arg.clone(), expected_type.clone()) {
+                                (ref arg, _) if std::mem::discriminant(arg) == std::mem::discriminant(&expected_type) => {
+                                    scope_environment.declare_variable(variable_name.to_string(), arg.clone())
+                                },
+                                _ => panic!("Type Error: Expected type '{:?}' but found type '{:?}'", expected_type, arg)
+                            }
                         } else {
                             panic!()
                         }
                     }
 
-                    scope_interpreter.interpret(&mut scope_environment)
+                    let result = scope_interpreter.interpret(&mut scope_environment);
+
+                    match (result.clone(), return_type.clone()) {
+                        (ref result_value, _) if std::mem::discriminant(result_value) == std::mem::discriminant(&return_type) => result,
+                        _ => panic!("Type Error: Expected type '{:?}' but found type '{:?}'", return_type, result),
+                    }
+
                 } else {
                     panic!(
                         "Wrong number of arguments provided. Expected {} but got {}",
@@ -399,7 +419,7 @@ impl Interpreter {
                     );
                 }
             }
-            _ => RuntimeValue::Null,
+            _ => RuntimeValue::Null
         }
     }
 

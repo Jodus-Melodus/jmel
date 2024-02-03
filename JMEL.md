@@ -341,12 +341,23 @@ tup("Hello", 3, true);     // Output: ("Hello", 3, true)
 ### User Defined Functions
 
 Functions in JMEL are defined using the following syntax:
-`func <name>([arguments]) { [code] }`
+`func <name>([arguments:type]) -> <return type> { [code] }`
 
 - The `<name>` is the function's identifier. It must start with a letter followed by any combination of letters, digits, or underscores.
-- The `[arguments]` section lists the names that will represent the data provided by the caller when calling the function.
+- The `[arguments:type]` section lists the names that will represent the data provided by the caller when calling the function and the type it should be when calling the function.
 - The `[code]` section contains the code that the function will execute when it is called.
+- The `<return type>` specifies the return type of the function.
 
 ```jmel
-func add(a, b) { a + b }   // This function takes two arguments 'a' and 'b', adds them together and returns the result.
+func add(a:integer, b:integer) -> integer { a + b }   // This function takes two arguments 'a' and 'b', adds them together and returns the result.
+```
+
+Example with hardcasting
+
+```jmel
+func add(a:integer, b:real) -> integer {
+    (a + b) as integer
+}
+
+print(add(4, 5 as real))
 ```

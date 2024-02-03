@@ -1,3 +1,5 @@
+use core::panic;
+
 use crate::lexer::{Token, TT};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -18,7 +20,7 @@ pub enum ASTNode {
     ConversionExpression(Box<ASTNode>, Box<ASTNode>),
 
     VariableDeclaration(Box<ASTNode>, Box<ASTNode>),
-    FunctionDeclaration(Box<ASTNode>, Vec<ASTNode>, Box<ASTNode>),
+    FunctionDeclaration(Box<ASTNode>, Vec<ASTNode>, Vec<ASTNode>, Box<ASTNode>, Box<ASTNode>),
     IfStatement(Box<ASTNode>, Box<ASTNode>, Box<ASTNode>),
     Program(Vec<ASTNode>),
     CaseStatement(Box<ASTNode>, Vec<ASTNode>),
@@ -88,20 +90,54 @@ impl Parser {
         assert!(matches!(&name, ASTNode::Identifier(_)));
 
         if self.peek().kind == TT::OpeningParenthesis {
-            let parameters = self.parse_arguments();
-            
-            if self.peek().kind == TT::OpeningCurlyBrace {
-                self.eat();
-                let mut body = Vec::new();
+            let mut parameters = Vec::new();
+            let mut parameters_types = Vec::new();
+            self.eat();
 
-                while self.peek().kind != TT::ClosingCurlyBrace {
-                    body.push(self.parse());
-                };
-                self.eat();
+            while self.peek().kind != TT::ClosingParenthesis {
+                parameters.push(self.parse());
 
-                ASTNode::FunctionDeclaration(Box::new(name), parameters, Box::new(ASTNode::Program(body)))
-            } else {
-                panic!();
+                if self.peek().kind == TT::Colon {
+                    self.eat();
+                    let kind = self.parse_primary_expression();
+
+                    match kind {
+                        ASTNode::Identifier(_) => {
+                            parameters_types.push(kind);
+                        },
+                        _ => panic!()
+                    }
+
+                    if self.peek().kind == TT::ClosingParenthesis {
+                        break;
+                    }
+                    self.expect(TT::Comma);
+                } else {
+                    panic!()
+                }
+            };
+            self.eat();
+
+            self.expect(TT::RightArrow);
+
+            let return_type = self.parse_primary_expression();
+            match return_type {
+                ASTNode::Identifier(_) => {
+                    if self.peek().kind == TT::OpeningCurlyBrace {
+                        self.eat();
+                        let mut body = Vec::new();
+        
+                        while self.peek().kind != TT::ClosingCurlyBrace {
+                            body.push(self.parse());
+                        };
+                        self.eat();
+        
+                        ASTNode::FunctionDeclaration(Box::new(name), parameters, parameters_types, Box::new(return_type), Box::new(ASTNode::Program(body)))
+                    } else {
+                        panic!("Expected a '{{', got '{:?}'", self.peek());
+                    }
+                },
+                _ => panic!("Expected a type, got '{:?}'", return_type)
             }
         } else {
             panic!("Expected '(', got '{:?}'", self.peek());

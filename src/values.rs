@@ -32,7 +32,7 @@ pub enum RuntimeValue {
         Box<RuntimeValue>,
         Vec<RuntimeValue>,
     ),
-    Function(Vec<ASTNode>, ASTNode),
+    Function(Vec<ASTNode>, Vec<RuntimeValue>, Box<RuntimeValue>, ASTNode),
 }
 
 impl fmt::Display for RuntimeValue {
@@ -47,7 +47,7 @@ impl fmt::Display for RuntimeValue {
             RuntimeValue::Object(o, _) => write!(f, "{:?}", o),
             RuntimeValue::BuiltInFunction(c, _) => write!(f, "{:?}", c),
             RuntimeValue::Tuple(t) => write!(f, "{:?}", t),
-            RuntimeValue::Function(p, b) => write!(f, "({:?}) {{{:?}}}", p, b),
+            RuntimeValue::Function(p, _, _, b) => write!(f, "({:?}) {{{:?}}}", p, b),
             RuntimeValue::Method(_, _, _) => todo!(),
         }
     }
