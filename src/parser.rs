@@ -8,8 +8,6 @@ pub enum ASTNode {
     ArrayLiteral(Vec<ASTNode>),
     NullLiteral,
     Identifier(String),
-    ObjectLiteral(Vec<String>, Vec<ASTNode>),
-    TupleLiteral(Vec<ASTNode>),
 
     ConditionalExpression(Box<ASTNode>, String, Box<ASTNode>),
     CallExpression(Box<ASTNode>, Vec<ASTNode>),
@@ -190,7 +188,7 @@ impl Parser {
         if self.peek().kind == TT::Identifier || self.peek().kind == TT::OpeningParenthesis {
             let variable_name = match self.peek().kind {
                 TT::Identifier => self.parse_primary_expression(),
-                _ => self.parse_tuple_expression(),
+                _ => self.parse_call_expression(),
             };
 
             if self.peek().kind == TT::AssignmentOperator {
@@ -223,7 +221,7 @@ impl Parser {
 
     fn parse_assignment_expression(&mut self) -> ASTNode {
         if self.peek().kind == TT::Identifier || self.peek().kind == TT::OpeningParenthesis {
-            let variable = self.parse_tuple_expression();
+            let variable = self.parse_call_expression();
             if self.peek().kind == TT::AssignmentOperator {
                 self.eat();
                 let variable_value = self.parse_expression();
@@ -237,71 +235,6 @@ impl Parser {
             } else {
                 variable
             }
-        } else {
-            self.parse_tuple_expression()
-        }
-    }
-
-    fn parse_tuple_expression(&mut self) -> ASTNode {
-        if self.peek().kind == TT::OpeningParenthesis {
-            self.eat();
-
-            let mut values = Vec::new();
-
-            while self.peek().kind != TT::ClosingParenthesis {
-                values.push(self.parse_expression());
-                if self.peek().kind == TT::Comma {
-                    self.eat();
-                } else if self.peek().kind != TT::ClosingParenthesis {
-                    panic!("Expected ',' or ')', got a '{:?}'.", self.eat());
-                };
-            }
-            self.eat();
-
-            ASTNode::TupleLiteral(values)
-        } else {
-            self.parse_object_expression()
-        }
-    }
-
-    fn parse_object_expression(&mut self) -> ASTNode {
-        if self.peek().kind == TT::OpeningCurlyBrace {
-            self.eat();
-            let mut attribute_names = Vec::new();
-            let mut attribute_values = Vec::new();
-
-            while self.peek().kind != TT::ClosingCurlyBrace {
-                if self.peek().kind == TT::Identifier {
-                    let attr = self.eat();
-                    attribute_names.push(attr.clone().value);
-
-                    if self.peek().kind == TT::Colon {
-                        self.eat();
-
-                        attribute_values.push(self.parse_expression());
-
-                        if self.peek().kind == TT::Comma {
-                            self.eat();
-                        };
-                    } else if self.peek().kind == TT::Comma {
-                        attribute_values.push(ASTNode::Identifier(attr.value));
-                        self.eat();
-                    } else if self.peek().kind == TT::ClosingCurlyBrace {
-                        attribute_values.push(ASTNode::Identifier(attr.value));
-                        break;
-                    } else {
-                        panic!("Expected ':', got {:?}", self.eat());
-                    };
-                } else {
-                    panic!(
-                        "Expected an Identifier as property name, but found {:?} instead.",
-                        self.peek()
-                    );
-                };
-            }
-            self.eat();
-
-            ASTNode::ObjectLiteral(attribute_names, attribute_values)
         } else {
             self.parse_call_expression()
         }
@@ -450,6 +383,10 @@ impl Parser {
             }
             TT::OpeningParenthesis => {
                 self.eat();
+                if self.peek().kind == TT::ClosingParenthesis {
+                    self.eat();
+                    return ASTNode::NullLiteral;
+                };
                 let node = self.parse_expression();
                 self.expect(TT::ClosingParenthesis);
                 node

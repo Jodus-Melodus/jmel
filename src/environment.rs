@@ -26,6 +26,7 @@ impl Environment {
             "input".to_string(),
             RuntimeValue::BuiltInFunction(built_in_functions::input, vec![]),
         );
+        constants.insert("tup".to_string(), RuntimeValue::BuiltInFunction(built_in_functions::tup, vec![]));
 
         Environment {
             parent: Box::new(parent),

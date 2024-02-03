@@ -14,9 +14,9 @@ mod built_in_functions;
 mod environment;
 mod interpreter;
 mod lexer;
+mod methods;
 mod parser;
 mod values;
-mod methods;
 
 fn read_file(path: PathBuf) -> Vec<String> {
     let file = File::open(path).expect("Failed to open file");
@@ -49,4 +49,6 @@ fn main() {
 
     let interpreter = Interpreter::new(program);
     let _result = interpreter.interpret(&mut environment);
+
+    println!("{}", _result);
 }

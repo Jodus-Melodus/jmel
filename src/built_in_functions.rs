@@ -21,3 +21,7 @@ pub fn input(prompt: Vec<RuntimeValue>) -> RuntimeValue {
 
     RuntimeValue::string(input.trim_end().to_string())
 }
+
+pub fn tup(values: Vec<RuntimeValue>) -> RuntimeValue {
+    RuntimeValue::Tuple(values)
+}
