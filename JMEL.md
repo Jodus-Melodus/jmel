@@ -322,6 +322,22 @@ Example:
 let name = input("Please enter your name: ");                  // Output (prompt): Please enter your name:
 ```
 
+#### `tup()`
+
+Description:
+
+- Creates a new tuple with supplied values
+
+Arguments:
+
+- Any number of values can be passed as arguments.
+
+Example:
+
+```jmel
+tup("Hello", 3, true);     // Output: ("Hello", 3, true)
+```
+
 ### User Defined Functions
 
 Functions in JMEL are defined using the following syntax:
