@@ -36,8 +36,40 @@ pub fn string_is_empty(object: RuntimeValue, arguments: Vec<RuntimeValue>) -> Ru
 
     match &object {
         RuntimeValue::String(s, _) => RuntimeValue::Boolean(s.is_empty()),
-        _ => RuntimeValue::Null,
+        _ => panic!()
     }
+}
+
+pub fn string_split(object: RuntimeValue, arguments: Vec<RuntimeValue>) -> RuntimeValue {
+    let mut splitted_string = Vec::new();
+
+    if arguments.len() == 1 {
+        let split_char = match &arguments[0] {
+            RuntimeValue::String(s, _) => s,
+            _ => panic!()
+        };
+        let mut split = String::new();
+
+        match object {
+            RuntimeValue::String(mut s, _) => {
+                while !s.is_empty() {
+                    let char = s.remove(0);
+
+                    if char == split_char.as_str().chars().next().unwrap() {
+                        splitted_string.push(RuntimeValue::string(split));
+                        split = "".to_string();
+                    } else {
+                        split.push(char);
+                    }
+                }
+            },
+            _ => panic!()
+        }
+    } else {
+        panic!("Expected 1 argument, recieved {}", arguments.len())
+    }
+
+    RuntimeValue::array(splitted_string)
 }
 
 // Object Methods
