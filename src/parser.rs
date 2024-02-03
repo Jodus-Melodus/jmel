@@ -221,7 +221,7 @@ impl Parser {
 
     fn parse_assignment_expression(&mut self) -> ASTNode {
         if self.peek().kind == TT::Identifier || self.peek().kind == TT::OpeningParenthesis {
-            let variable = self.parse_call_expression();
+            let variable = self.parse_conditional_expression();
             if self.peek().kind == TT::AssignmentOperator {
                 self.eat();
                 let variable_value = self.parse_expression();
@@ -236,36 +236,8 @@ impl Parser {
                 variable
             }
         } else {
-            self.parse_call_expression()
+            self.parse_conditional_expression()
         }
-    }
-
-    fn parse_call_expression(&mut self) -> ASTNode {
-        let mut calle = self.parse_conditional_expression();
-
-        if self.peek().kind == TT::OpeningParenthesis {
-            let arguments = self.parse_arguments();
-            calle = ASTNode::CallExpression(Box::new(calle), arguments)
-        }
-        calle
-    }
-
-    fn parse_arguments(&mut self) -> Vec<ASTNode> {
-        self.eat();
-
-        let mut arguments = Vec::new();
-
-        while self.peek().kind != TT::ClosingParenthesis {
-            let argument = self.parse_expression();
-            arguments.push(argument);
-            if self.peek().kind == TT::Comma {
-                self.eat();
-            } else if self.peek().kind != TT::ClosingParenthesis {
-                panic!("Expected a ',', or a ')', but found a {:?}.", self.peek());
-            }
-        }
-        self.eat();
-        arguments
     }
 
     fn parse_conditional_expression(&mut self) -> ASTNode {
@@ -303,16 +275,44 @@ impl Parser {
     }
 
     fn parse_multiplicative_expression(&mut self) -> ASTNode {
-        let mut left = self.parse_member_expression();
+        let mut left = self.parse_call_expression();
 
         while self.peek().kind == TT::BinaryOperator
             && ["*", "/", "%"].contains(&self.peek().value.as_str())
         {
             let operator = self.eat().value;
-            let right = self.parse_member_expression();
+            let right = self.parse_call_expression();
             left = ASTNode::BinaryExpression(Box::new(left), operator, Box::new(right));
         }
         left
+    }
+
+    fn parse_call_expression(&mut self) -> ASTNode {
+        let mut calle = self.parse_member_expression();
+
+        if self.peek().kind == TT::OpeningParenthesis {
+            let arguments = self.parse_arguments();
+            calle = ASTNode::CallExpression(Box::new(calle), arguments)
+        }
+        calle
+    }
+
+    fn parse_arguments(&mut self) -> Vec<ASTNode> {
+        self.eat();
+
+        let mut arguments = Vec::new();
+
+        while self.peek().kind != TT::ClosingParenthesis {
+            let argument = self.parse_expression();
+            arguments.push(argument);
+            if self.peek().kind == TT::Comma {
+                self.eat();
+            } else if self.peek().kind != TT::ClosingParenthesis {
+                panic!("Expected a ',', or a ')', but found a {:?}.", self.peek());
+            }
+        }
+        self.eat();
+        arguments
     }
 
     fn parse_member_expression(&mut self) -> ASTNode {

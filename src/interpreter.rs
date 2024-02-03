@@ -60,10 +60,6 @@ impl Interpreter {
                     .map(|v| self.evaluate(v.clone(), environment))
                     .collect(),
             ),
-            // ASTNode::ObjectLiteral(attribute_names, attribute_values) => {
-            //     self.evaluate_object_literal(attribute_names, attribute_values, environment)
-            // }
-            // ASTNode::TupleLiteral(values) => self.evaluate_tuple_literal(values, environment),
             ASTNode::RealLiteral(value) => RuntimeValue::Real(value),
 
             ASTNode::VariableDeclaration(variable_name, variable_value) => {
@@ -510,9 +506,11 @@ impl Interpreter {
         left: RuntimeValue,
         operand: String,
         right: RuntimeValue,
-        _environment: &mut Environment,
+        environment: &mut Environment,
     ) -> RuntimeValue {
+
         match (operand.as_str(), left, right) {
+            // Integer : Integer
             ("+", RuntimeValue::Integer(lhs), RuntimeValue::Integer(rhs)) => {
                 RuntimeValue::Integer(lhs + rhs)
             }
@@ -529,6 +527,7 @@ impl Interpreter {
                 RuntimeValue::Integer(lhs % rhs)
             }
 
+            // Real : Real
             ("+", RuntimeValue::Real(lhs), RuntimeValue::Real(rhs)) => {
                 RuntimeValue::Real(lhs + rhs)
             }
@@ -542,6 +541,7 @@ impl Interpreter {
                 RuntimeValue::Real(lhs / rhs)
             }
 
+            // Integer : Real
             ("+", RuntimeValue::Integer(lhs), RuntimeValue::Real(rhs)) => {
                 RuntimeValue::Real(lhs as f64 + rhs)
             }
@@ -555,6 +555,7 @@ impl Interpreter {
                 RuntimeValue::Real(lhs as f64 / rhs)
             }
 
+            // Real : Integer
             ("+", RuntimeValue::Real(lhs), RuntimeValue::Integer(rhs)) => {
                 RuntimeValue::Real(lhs + rhs as f64)
             }
@@ -568,20 +569,30 @@ impl Interpreter {
                 RuntimeValue::Real(lhs / rhs as f64)
             }
 
+            // String : String
             ("+", RuntimeValue::String(lhs, _), RuntimeValue::String(rhs, _)) => {
                 RuntimeValue::string(lhs + &rhs)
             }
 
+            // String : Integer
             ("*", RuntimeValue::String(lhs, _), RuntimeValue::Integer(rhs)) => {
                 RuntimeValue::string(lhs.repeat(rhs as usize))
             }
 
+            // Array : Any
             ("+", RuntimeValue::Array(mut lhs, _), rhs) => {
                 lhs.push(rhs);
                 RuntimeValue::array(lhs)
             }
 
-            _ => RuntimeValue::Integer(0),
+            // Tuple : Tuple
+            (op, RuntimeValue::Tuple(lhs), RuntimeValue::Tuple(rhs)) => {
+                let res = lhs.iter().zip(rhs).map(|(l, r)| self.evaluate_binary_expression(l.clone(), op.to_string(), r, environment)).collect::<Vec<RuntimeValue>>();
+                RuntimeValue::Tuple(res)
+            },
+
+
+            _ => RuntimeValue::Null,
         }
     }
 }

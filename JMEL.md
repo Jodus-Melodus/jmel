@@ -142,19 +142,12 @@ arr[2]                      // 9
 ### `tuple`
 
 - Tuples allow you to assign multiple variables at a time.
-- They are created with `(...)` syntax.
 - Elements cannot be accessed or modified individually once they're assigned.
 
 #### Declaring a tuple
 
 ```jmel
-let (x, y) = (4, true);
-x                           // 4
-y                           // true
-
-(x, y) = ("hi", 1)
-x                           // "hi"
-y                           // 1
+let x = tup(4, 3, true);
 ```
 
 ---
